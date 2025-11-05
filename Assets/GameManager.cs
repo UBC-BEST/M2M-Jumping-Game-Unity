@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviour
     public int count = 300;
     
     public float minGapY = -0.4f;  // min vertical distance between platforms
-    public float maxGapY = 0.1f; 
+    public float maxGapY = -0.3f; 
 
     // Start is called before the first frame update
     void Start()
