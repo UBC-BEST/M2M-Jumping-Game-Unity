@@ -41,13 +41,61 @@ public class GameManager : MonoBehaviour
         {
             gameOverUI.SetActive(false);
         }
+
+        // Max Reachable Height
+        // H = v^2 / (2g)
+        float maxJumpHeight = 5f; // Default fallback
+        float jumpVelocity = 0f;
+        
+        if (platformPrefab != null)
+        {
+            Platformer platformScript = platformPrefab.GetComponent<Platformer>();
+            if (platformScript != null)
+            {
+                jumpVelocity = platformScript.jumpForce;
+            }
+        }
+
+        float gravity = Mathf.Abs(Physics2D.gravity.y); 
+        if (gravity > 0 && jumpVelocity > 0)
+        {
+            maxJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravity);
+        }
+
+        Debug.Log($"Calculated Max Jump Height: {maxJumpHeight}");
+
+        float minSafeGap = 0.3f; 
+        
+        // Maximum gap strictly less than max jump height
+        float maxSafeGap = maxJumpHeight * 0.75f;
+
+        if (minGapY < 0) minGapY = Mathf.Abs(minGapY);
+        if (maxGapY < 0) maxGapY = Mathf.Abs(maxGapY);
+
+        if (minGapY < minSafeGap) 
+        {
+            minGapY = minSafeGap;
+            Debug.Log($"Adjusted minGapY to {minGapY} to prevent overlaps.");
+        }
+
+        if (maxGapY > maxSafeGap) 
+        {
+            maxGapY = maxSafeGap;
+            Debug.Log($"Adjusted maxGapY to {maxGapY} to ensure reachability.");
+        }
+
+        if (maxGapY < minGapY)
+        {
+            maxGapY = minGapY;
+        }
+
         
         // Generate platforms
         Vector3 spawnPosition = new Vector3();
         for (int i = 0; i < count; i++) {
             float gapY = Random.Range(minGapY, maxGapY);
             spawnPosition.y += gapY;
-            spawnPosition.x = Random.Range(-0.1f, 0.6f);
+            spawnPosition.x = Random.Range(-0.2f, 0.9f);
             Instantiate(platformPrefab, spawnPosition, Quaternion.identity);
         }
     }
@@ -57,7 +105,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         
         isGameOver = true;
-        Time.timeScale = 0f; // Pause the game
+        Time.timeScale = 0f; 
         
         if (gameOverUI != null)
         {
@@ -69,7 +117,7 @@ public class GameManager : MonoBehaviour
     
     public void RestartGame()
     {
-        Time.timeScale = 1f; // Resume normal time
+        Time.timeScale = 1f; 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     
