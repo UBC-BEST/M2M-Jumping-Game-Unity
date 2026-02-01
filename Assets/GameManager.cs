@@ -164,10 +164,7 @@ public class GameManager : MonoBehaviour
     
     public float GetDeathZone()
     {
-        if (mainCamera != null)
-        {
-            return mainCamera.transform.position.y - deathZoneOffset;
-        }
+        // Fixed death zone at bottom of level since camera now follows player
         return -10f;
     }
 }
