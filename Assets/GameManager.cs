@@ -8,13 +8,14 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     
     [Header("Platform Generation")]
-    public GameObject platformPrefab;
+    public GameObject platformPrefab; // Keep as default/fallback
+    public List<GameObject> platformPrefabs; // List of variants
     public int count = 300;
     public float minGapY = -0.4f;
     public float maxGapY = -0.3f;
     
     [Header("Death Settings")]
-    public float deathZoneOffset = 8f; // Distance below camera where player dies
+    public float deathZoneOffset = 5f; // Distance below camera where player dies
     public GameObject gameOverUI;
     
     private bool isGameOver = false;
@@ -55,6 +56,8 @@ public class GameManager : MonoBehaviour
                 jumpVelocity = platformScript.jumpForce;
             }
         }
+        
+        Debug.Log($"Platform Prefabs List Count: {(platformPrefabs != null ? platformPrefabs.Count : 0)}");
 
         float gravity = Mathf.Abs(Physics2D.gravity.y); 
         if (gravity > 0 && jumpVelocity > 0)
@@ -96,7 +99,31 @@ public class GameManager : MonoBehaviour
             float gapY = Random.Range(minGapY, maxGapY);
             spawnPosition.y += gapY;
             spawnPosition.x = Random.Range(-0.2f, 0.9f);
-            Instantiate(platformPrefab, spawnPosition, Quaternion.identity);
+            
+            GameObject prefabToSpawn = platformPrefab;
+            
+            // Randomly select variant if list is populated
+            if (platformPrefabs != null && platformPrefabs.Count > 0)
+            {
+                // Simple random selection (could be weighted later)
+                // 70% chance for normal (assuming index 0 or platformPrefab), 30% for others
+                if (Random.value > 0.3f)
+                {
+                   prefabToSpawn = platformPrefab;
+                   // Debug.Log("Spawning Default");
+                }
+                else
+                {
+                   prefabToSpawn = platformPrefabs[Random.Range(0, platformPrefabs.Count)];
+                   Debug.Log($"Spawning Special: {prefabToSpawn.name}");
+                }
+            }
+            else
+            {
+                 Debug.LogError("Platform Prefabs list is empty! Go to GameManager in Inspector and add the special prefabs (Moving, Breaking, Spike).");
+            }
+            
+            Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
         }
     }
     
