@@ -6,7 +6,7 @@ public class Platformer : MonoBehaviour
 {
     public float jumpForce = 3f;
 
-    private void OnCollisionEnter2D(Collision2D collision) {
+    protected virtual void OnCollisionEnter2D(Collision2D collision) {
         if (collision.relativeVelocity.y <= 0f) {
             Rigidbody2D rb = collision.gameObject.GetComponent<Rigidbody2D>();
             if (rb != null) {

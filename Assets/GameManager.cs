@@ -8,13 +8,14 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     
     [Header("Platform Generation")]
-    public GameObject platformPrefab;
+    public GameObject platformPrefab; // Keep as default/fallback
+    public List<GameObject> platformPrefabs; // List of variants
     public int count = 300;
     public float minGapY = -0.4f;
     public float maxGapY = -0.3f;
     
     [Header("Death Settings")]
-    public float deathZoneOffset = 8f; // Distance below camera where player dies
+    public float deathZoneOffset = 5f; // Distance below camera where player dies
     public GameObject gameOverUI;
     
     private bool isGameOver = false;
@@ -41,14 +42,88 @@ public class GameManager : MonoBehaviour
         {
             gameOverUI.SetActive(false);
         }
+
+        // Max Reachable Height
+        // H = v^2 / (2g)
+        float maxJumpHeight = 5f; // Default fallback
+        float jumpVelocity = 0f;
+        
+        if (platformPrefab != null)
+        {
+            Platformer platformScript = platformPrefab.GetComponent<Platformer>();
+            if (platformScript != null)
+            {
+                jumpVelocity = platformScript.jumpForce;
+            }
+        }
+        
+        Debug.Log($"Platform Prefabs List Count: {(platformPrefabs != null ? platformPrefabs.Count : 0)}");
+
+        float gravity = Mathf.Abs(Physics2D.gravity.y); 
+        if (gravity > 0 && jumpVelocity > 0)
+        {
+            maxJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravity);
+        }
+
+        Debug.Log($"Calculated Max Jump Height: {maxJumpHeight}");
+
+        float minSafeGap = 0.3f; 
+        
+        // Maximum gap strictly less than max jump height
+        float maxSafeGap = maxJumpHeight * 0.75f;
+
+        if (minGapY < 0) minGapY = Mathf.Abs(minGapY);
+        if (maxGapY < 0) maxGapY = Mathf.Abs(maxGapY);
+
+        if (minGapY < minSafeGap) 
+        {
+            minGapY = minSafeGap;
+            Debug.Log($"Adjusted minGapY to {minGapY} to prevent overlaps.");
+        }
+
+        if (maxGapY > maxSafeGap) 
+        {
+            maxGapY = maxSafeGap;
+            Debug.Log($"Adjusted maxGapY to {maxGapY} to ensure reachability.");
+        }
+
+        if (maxGapY < minGapY)
+        {
+            maxGapY = minGapY;
+        }
+
         
         // Generate platforms
         Vector3 spawnPosition = new Vector3();
         for (int i = 0; i < count; i++) {
             float gapY = Random.Range(minGapY, maxGapY);
             spawnPosition.y += gapY;
-            spawnPosition.x = Random.Range(-0.1f, 0.6f);
-            Instantiate(platformPrefab, spawnPosition, Quaternion.identity);
+            spawnPosition.x = Random.Range(-0.2f, 0.9f);
+            
+            GameObject prefabToSpawn = platformPrefab;
+            
+            // Randomly select variant if list is populated
+            if (platformPrefabs != null && platformPrefabs.Count > 0)
+            {
+                // Simple random selection (could be weighted later)
+                // 70% chance for normal (assuming index 0 or platformPrefab), 30% for others
+                if (Random.value > 0.3f)
+                {
+                   prefabToSpawn = platformPrefab;
+                   // Debug.Log("Spawning Default");
+                }
+                else
+                {
+                   prefabToSpawn = platformPrefabs[Random.Range(0, platformPrefabs.Count)];
+                   Debug.Log($"Spawning Special: {prefabToSpawn.name}");
+                }
+            }
+            else
+            {
+                 Debug.LogError("Platform Prefabs list is empty! Go to GameManager in Inspector and add the special prefabs (Moving, Breaking, Spike).");
+            }
+            
+            Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
         }
     }
     
@@ -57,7 +132,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         
         isGameOver = true;
-        Time.timeScale = 0f; // Pause the game
+        Time.timeScale = 0f; 
         
         if (gameOverUI != null)
         {
@@ -69,7 +144,7 @@ public class GameManager : MonoBehaviour
     
     public void RestartGame()
     {
-        Time.timeScale = 1f; // Resume normal time
+        Time.timeScale = 1f; 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     
@@ -89,10 +164,7 @@ public class GameManager : MonoBehaviour
     
     public float GetDeathZone()
     {
-        if (mainCamera != null)
-        {
-            return mainCamera.transform.position.y - deathZoneOffset;
-        }
+        // Fixed death zone at bottom of level since camera now follows player
         return -10f;
     }
 }
