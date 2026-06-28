@@ -308,18 +308,3 @@ git push -u origin feature/your-feature-name
 | Game over UI does not appear | `gameOverUI` reference missing on `GameManager` | Assign `GameOverPanel` in Inspector |
 | UI buttons do not work after death | `Time.timeScale = 0` | Buttons use `GameManager.RestartGame()` which resets time scale — ensure listeners are wired |
 | Console error about empty prefab list | Expected until `platformPrefabs` is configured | See First-Time Inspector Checklist |
-
----
-
-## License
-
-No license file is included in this repository. Confirm licensing with the UBC-BEST maintainers before distributing or reusing the project.
-
----
-
-## Contact / Ownership
-
-- **Repository:** [UBC-BEST/M2M-Jumping-Game-Unity](https://github.com/UBC-BEST/M2M-Jumping-Game-Unity)
-- **Organization:** UBC-BEST
-
-For questions about game design intent or deployment targets, reach out to the repository maintainers via GitHub Issues.
